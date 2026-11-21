@@ -1,0 +1,9 @@
+| Name        | Role           | Nationality | W2Pos | Cook | Guard | Servant | Partner_1 | Partner_2 | PA | Child | isCulprit |
+| Mr_Leonardo | BusinessOwner  | French      | 1     | S    | S     | H       | S         | R         | P  | B     | 0         |
+| Mr_Enzo     | Cook           | Italian     | 2     | P    | H     | E       | U         | A         | Y  | U     | 0         |
+| Mr_Lukas    | Guard          | German      | 3     | A    | E     | R       | N         | S         | R  | R     | 0         |
+| Mr_Toby     | Servant        | British     | 4     | G    | P     | I       | B         | P         | A  | G     | 0         |
+| Ms_Celine   | Child          | French      | 5     | H    | H     | T       | L         | U         | M  | L     | 0         |
+| Ms_Ruslana  | Partner_1      | Ukrainian   | 6     | E    | E     | A       | O         | T         | I  | A     | 0         |
+| Mr_Dmitry   | Partner_2      | Russian     | 7     | T    | R     | G       | O         | I         | D  | R     | 0         |
+| Mr_Jad      | PA             | Egyptian    | 8     | I    | D     | E       | M         | N         | S  | Y     | 0         |

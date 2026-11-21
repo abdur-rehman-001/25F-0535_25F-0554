@@ -1,0 +1,10 @@
+THE LOCKER HEIST - RULES
+
+1. The detective starts with 100 credibility.
+2. The game allows a maximum of 25 turns.
+3. Search the seven locations to collect Word 1 letters.
+4. Interview the eight people to collect Word 2 letters.
+5. A wrong word reduces credibility by 10.
+6. Some people need a minimum credibility before they can be interviewed.
+7. Solve both words before accusing a suspect.
+8. The score is saved in scoreBoard.txt after the game ends.
