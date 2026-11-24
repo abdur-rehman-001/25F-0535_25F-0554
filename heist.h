@@ -94,4 +94,131 @@ public:
     static GameEngine& getInstance();
     void run();
 };
+class Character;
+class Detective;
+class Cottage;
+class Scrabble;
+class TileRack;
+class GameEngine;
+
+// Game ke total  logon ki base class
+class Character
+{
+protected:
+    string characterName;
+    string characterRole;
+    string nationality;
+    bool isCulprit;
+    bool interviewed;
+    WordRow clueRowChar;
+    char letterClueChar;
+    int boardPosChar;
+
+public:
+    Character(const string& name = "", const string& role = "", const string& nation = "");
+    Character(const Character& other);
+    Character& operator=(const Character& other);
+    virtual ~Character();
+    virtual void display() const = 0;
+    virtual bool canBeInterviewed(int credibility) const;
+    void setCulprit(bool value);
+    bool getIsCulprit() const;
+    bool getInterviewed() const;
+    void setInterviewed(bool value);
+    const string& getName() const;
+    const string& getRole() const;
+    const string& getNationality() const;
+    Clue getClue() const;
+    friend ostream& operator<<(ostream& output, const Character& character);
+    friend istream& operator>>(istream& input, Character& character);
+    friend class GameEngine;
+};
+ostream& operator<<(ostream& output, const Character& character);
+istream& operator>>(istream& input, Character& character);
+
+class Victim : public Character
+{
+public:
+    Victim(const string& name, const string& nation);
+    void display() const override;
+    bool canBeInterviewed(int credibility) const override;
+};
+class Suspect : public virtual Character
+{
+public:
+    Suspect(const string& name, const string& role, const string& nation);
+    void display() const override;
+    bool canBeInterviewed(int credibility) const override;
+};
+class Detective : public Character
+{
+private:
+    int credibility;
+    int turns;
+public:
+    Detective(const string& name = "Detective");
+    void display() const override;
+    bool canBeInterviewed(int credibilityValue) const override;
+    void reset(const string& name);
+    void reset(const string& name, int initialCredibility);
+    void reduceCredibility(int amount);
+    void useTurn();
+    int getCredibility() const;
+    int getTurns() const;
+};
+class BusinessRelations : public virtual Suspect
+{
+public:
+    BusinessRelations(const string& name, const string& role, const string& nation);
+    void display() const override;
+};
+class HouseHelp : public virtual Suspect
+{
+public:
+    HouseHelp(const string& name, const string& role, const string& nation);
+    void display() const override;
+};
+class CloseRelations : public virtual Suspect
+{
+public:
+    CloseRelations(const string& name, const string& role, const string& nation);
+    void display() const override;
+};
+class Partner : public BusinessRelations
+{
+public:
+    Partner(const string& name, const string& nation);
+    bool canBeInterviewed(int credibility) const override;
+};
+class Cook : public HouseHelp
+{
+public:
+    Cook(const string& name, const string& nation);
+};
+class Guard : public HouseHelp
+{
+public:
+    Guard(const string& name, const string& nation);
+};
+class Servant : public HouseHelp
+{
+public:
+    Servant(const string& name, const string& nation);
+};
+class Child : public CloseRelations
+{
+public:
+    Child(const string& name, const string& nation);
+    bool canBeInterviewed(int credibility) const override;
+};
+// PA do branches se inherit karta hai, virtual inheritance duplicate Character object se bachati hai
+class PA : public BusinessRelations, public CloseRelations
+{
+public:
+    PA(const string& name, const string& nation);
+    void display() const override;
+    bool canBeInterviewed(int credibility) const override;
+};
+
+
 
