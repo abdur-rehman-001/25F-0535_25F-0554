@@ -204,4 +204,144 @@ bool PA::canBeInterviewed(int credibility) const
     return credibility >= 35;
 }
 
+Cottage::Cottage(): LocCache(7), locationCount(7)
+{
+    const char defaultLetters[7] = { 'L', 'O', 'O', 'T', 'E', 'R', 'S' };
+    initializeLocations(defaultLetters);
+}
+Cottage::Cottage(const Cottage& other): LocCache(other.LocCache), locationCount(other.locationCount){}
+Cottage& Cottage::operator=(const Cottage& other)
+{
+    if (this != &other)
+    {
+        LocCache = other.LocCache;
+        locationCount = other.locationCount;
+    }
+    return *this;
+}
+Cottage::~Cottage(){}
+void Cottage::initializeLocations(const char letters[7])
+{
+    const string names[7] = { "Bedroom 1", "Bedroom 2", "Study Room", "Garden","Kitchen", "Dining Room", "Living Room" };
+    const int positions[7] = { 0, 1, 2, 3, 4, 5, 6 };
+    initializeLocations(names, letters, positions);
+}
+void Cottage::initializeLocations(const string names[7], const char letters[7], const int positions[7])
+{
+    for (int index = 0; index < locationCount; ++index)
+        LocCache[index] = Location(names[index], letters[index], positions[index], Word_1);
+}
+void Cottage::displayLocations() const
+{
+    cout << endl << "====== Location Menu ======" << endl;
+    for (int index = 0; index < locationCount; ++index)
+        cout << "[" << index + 1 << "] " << LocCache[index].locName << " - "
+        << (LocCache[index].locSearchFlag ? "Searched" : "NOT Searched") << endl;
+    cout << "===========================" << endl;
+}
+Clue Cottage::searchLocation(int index)
+{
+    if (index < 0 || index >= locationCount) throw GameException("Invalid location index.");
+    LocCache[index].locSearchFlag = true;
+    return Clue(LocCache[index].letterClueLoc, LocCache[index].boardPosLoc, LocCache[index].locRow);
+}
+bool Cottage::hasBeenSearched(int index) const
+{
+    if (index < 0 || index >= locationCount) return false;
+    return LocCache[index].locSearchFlag;
+}
+int Cottage::getLocationCount() const
+{
+    return locationCount;
+}
+const Location& Cottage::getLocation(int index) const
+{
+    if (index < 0 || index >= locationCount) throw GameException("Invalid location index.");
+    return LocCache[index];
+}
+
+Scrabble::Scrabble(): board(0)
+{
+    rowSizes[0] = 7;
+    rowSizes[1] = 8;
+    board = new DynamicArray<Tile>[2];
+    board[0] = DynamicArray<Tile>(rowSizes[0]);
+    board[1] = DynamicArray<Tile>(rowSizes[1]);
+}
+Scrabble::Scrabble(const Scrabble& other): board(0)
+{
+    rowSizes[0] = other.rowSizes[0];
+    rowSizes[1] = other.rowSizes[1];
+    board = new DynamicArray<Tile>[2];
+    board[0] = other.board[0];
+    board[1] = other.board[1];
+}
+Scrabble& Scrabble::operator=(const Scrabble& other)
+{
+    if (this != &other)
+    {
+        clear();
+        rowSizes[0] = other.rowSizes[0];
+        rowSizes[1] = other.rowSizes[1];
+        board = new DynamicArray<Tile>[2];
+        board[0] = other.board[0];
+        board[1] = other.board[1];
+    }
+    return *this;
+}
+Scrabble::~Scrabble()
+{
+    clear();
+}
+void Scrabble::clear()
+{
+    if (board != 0)
+    {
+        delete[] board;
+        board = 0;
+    }
+}
+void Scrabble::placeClue(const Clue& clue)
+{
+    int row = clue.clueRow;
+    if (row < 0 || row > 1 || clue.cluePosition < 0 || clue.cluePosition >= rowSizes[row])
+        throw GameException("Invalid board position.");
+    if (board[row][clue.cluePosition].filled)
+        throw GameException("This Scrabble slot is already filled.");
+    board[row][clue.cluePosition] = Tile(clue.clueLetter, true);
+}
+bool Scrabble::isRowComplete(WordRow row) const
+{
+    int rowNumber = row;
+    if (rowNumber < 0 || rowNumber > 1) return false;
+    for (int index = 0; index < rowSizes[rowNumber]; ++index)
+        if (!board[rowNumber][index].filled) return false;
+    return true;
+}
+bool Scrabble::isComplete() const
+{
+    return isRowComplete(Word_1) && isRowComplete(Word_2);
+}
+string Scrabble::formWord(WordRow row) const
+{
+    int rowNumber = row;
+    string word = "";
+    if (rowNumber < 0 || rowNumber > 1) return word;
+    for (int index = 0; index < rowSizes[rowNumber]; ++index)
+        word += board[rowNumber][index].tileLetter;
+    return word;
+}
+void Scrabble::display() const
+{
+    cout << endl << "Scrabble Board:" << endl;
+    cout << " Word 1: ";
+    for (int index = 0; index < rowSizes[0]; ++index)
+        cout << "[" << (board[0][index].filled ? board[0][index].tileLetter : ' ') << "] ";
+    cout << (isRowComplete(Word_1) ? " COMPLETE" : "") << endl;
+    cout << " Word 2: ";
+    for (int index = 0; index < rowSizes[1]; ++index)
+        cout << "[" << (board[1][index].filled ? board[1][index].tileLetter : ' ') << "] ";
+    cout << (isRowComplete(Word_2) ? " COMPLETE" : "") << endl;
+}
+
 
