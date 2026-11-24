@@ -379,5 +379,324 @@ int TileRack::getCount() const
     return count;
 }
 
+#include "heist.h"
+#include <cstdlib>
+#include <ctime>
+#include <cctype>
+#include <sstream>
+#include <stdexcept>
+using namespace std;
+string removeExtraSpaces(const string& text)
+{
+    int first = 0;
+    int last = text.length() - 1;
+    while (first <= last && (text[first] == ' ' || text[first] == '\t' || text[first] == '\r' || text[first] == '\n'))
+    {
+        first++;
+    }
+    while (last >= first && (text[last] == ' ' || text[last] == '\t' || text[last] == '\r' || text[last] == '\n'))
+    {
+        last--;
+    }
+    if (first > last)
+    {
+        return "";
+    }
+    return text.substr(first, last - first + 1);
+}
+
+int splitDataLine(const string& line, string fields[], int maximum)
+{
+    // Is line ko | ki jagah se alag fields mein tordia 
+    string currentField;
+    stringstream lineStream(line);
+    int fieldCount = 0;
+    while (getline(lineStream, currentField, '|') && fieldCount < maximum)
+    {
+        fields[fieldCount] = removeExtraSpaces(currentField);
+        fieldCount++;
+    }
+    // Shuru ya akhir ke | ki wajah se aaye empty fields hatadi
+    if (fieldCount > 0 && fields[0] == "")
+    {
+        for (int field = 1; field < fieldCount; field++)
+        {
+            fields[field - 1] = fields[field];
+        }
+        fieldCount--;
+    }
+    if (fieldCount > 0 && fields[fieldCount - 1] == "")
+    {
+        fieldCount--;
+    }
+    return fieldCount;
+}
+
+int findColumnNumber(const string headers[], int totalColumns, const string& wantedColumn)
+{
+    for (int column = 0; column < totalColumns; column++)
+    {
+        if (headers[column] == wantedColumn)
+        {
+            return column;
+        }
+    }
+    return -1;
+}
+
+int readLastNumber(const string& line, int defaultValue)
+{
+    // Line ka aakhri number lo, shuru wala rule number nahi.
+    int lastNumber = defaultValue;
+    bool foundNumber = false;
+    for (int position = 0; position < line.length(); position++)
+    {
+        if (isdigit(static_cast<unsigned char>(line[position])))
+        {
+            int currentNumber = 0;
+            while (position < line.length() && isdigit(static_cast<unsigned char>(line[position])))
+            {
+                currentNumber = currentNumber * 10 + (line[position] - '0');
+                position++;
+            }
+            lastNumber = currentNumber;
+            foundNumber = true;
+        }
+    }
+    return foundNumber ? lastNumber : defaultValue;
+}
+
+string getCulpritProfileName(int culpritIndex)
+{
+    switch (culpritIndex)
+    {
+    case 1: return "Cook";
+    case 2: return "Guard";
+    case 3: return "Servant";
+    case 4: return "Child";
+    case 5: return "Partner_1";
+    case 6: return "Partner_2";
+    case 7: return "PA";
+    default: return "";
+    }
+}
+
+string makeLocationNameReadable(string locationName)
+{
+    for (int position = 0; position < locationName.length(); position++)
+    {
+        if (locationName[position] == '_')
+        {
+            locationName[position] = ' ';
+        }
+    }
+    return locationName;
+}
+
+ScoreBoard::ScoreBoard(const string& path): fileName(path){}
+void ScoreBoard::appendResult(const string& detectiveName, const string& result,int credibility, int turnsLeft, const string& culprit) const
+{
+    ofstream output(fileName.c_str(), ios::app);
+    if (!output) throw GameException("Unable to open scoreboard for writing.");
+    time_t currentTime = time(0);
+    char dateBuffer[26];
+#ifdef _MSC_VER
+    ctime_s(dateBuffer, sizeof(dateBuffer), &currentTime);
+#else
+    const char* portableDate = ctime(&currentTime);
+    int dateIndex = 0;
+    if (portableDate != 0)
+    {
+        while (portableDate[dateIndex] != '\0' && dateIndex < 25)
+        {
+            dateBuffer[dateIndex] = portableDate[dateIndex];
+            ++dateIndex;
+        }
+    }
+    dateBuffer[dateIndex] = '\0';
+#endif
+    string date = dateBuffer;
+    if (!date.empty() && date[date.length() - 1] == '\n') date.erase(date.length() - 1);
+    output << "| " << detectiveName << " | " << result << " | " << credibility
+        << " | " << turnsLeft << " | " << culprit << " | " << date << " |" << endl;
+}
+void ScoreBoard::display() const
+{
+    ifstream input(fileName.c_str());
+    if (!input) throw GameException("Scoreboard file was not found.");
+    string line;
+    cout << endl << "========== LEADER / SCORE BOARD ==========" << endl;
+    while (getline(input, line)) cout << line << endl;
+    cout << "==========================================" << endl;
+}
+
+void GameEngine::buildCharacters()
+{
+    ifstream input("characters.txt");
+    if (!input) throw GameException("Required data file is missing: characters.txt");
+    string header[20], fields[20], line;
+    int headerCount = 0;
+    while (getline(input, line) && line.find('|') == string::npos) {}
+    if (line.empty()) throw GameException("characters.txt has no header.");
+    headerCount = splitDataLine(line, header, 20);
+    int roleColumn = findColumnNumber(header, headerCount, "Role");
+    int nationalityColumn = findColumnNumber(header, headerCount, "Nationality");
+    if (roleColumn < 0 || nationalityColumn < 0)
+        throw GameException("characters.txt is missing Role or Nationality columns.");
+    for (int index = 0; index < characterCount; ++index)
+    {
+        do
+        {
+            if (!getline(input, line)) throw GameException("characters.txt must contain eight character records.");
+        } while (line.find('|') == string::npos);
+        int count = splitDataLine(line, fields, 20);
+        if (count <= roleColumn || count <= nationalityColumn || fields[0].empty())
+            throw GameException("Invalid character record in characters.txt.");
+
+        string name = fields[0];
+        string role = fields[roleColumn];
+        string nation = fields[nationalityColumn];
+        if (index == 0 || role == "BusinessOwner")
+            characters[index] = new Victim(name, nation);
+        else if (role == "Cook")
+            characters[index] = new Cook(name, nation);
+        else if (role == "Guard")
+            characters[index] = new Guard(name, nation);
+        else if (role == "Servant")
+            characters[index] = new Servant(name, nation);
+        else if (role == "Child")
+            characters[index] = new Child(name, nation);
+        else if (role == "Partner_1" || role == "Partner_2")
+            characters[index] = new Partner(name, nation);
+        else if (role == "PA")
+            characters[index] = new PA(name, nation);
+        else
+            throw GameException("Unknown character role in characters.txt: " + role);
+        // Data file wala bilkul same role name 
+        characters[index]->characterRole = role;
+    }
+}
+void GameEngine::loadSelectedProfile()
+{
+    selectedProfileRole = getCulpritProfileName(culpritIndex);
+    if (selectedProfileRole.empty()) throw GameException("Invalid culprit profile.");
+    ifstream locationsFile("locations.txt");
+    if (!locationsFile) throw GameException("Required data file is missing: locations.txt");
+    string header[20], fields[20], line;
+    while (getline(locationsFile, line) && line.find('|') == string::npos) {}
+    int headerCount = splitDataLine(line, header, 20);
+    int placeColumn = findColumnNumber(header, headerCount, "Place");
+    int positionColumn = findColumnNumber(header, headerCount, "W1Pos");
+    int profileColumn = findColumnNumber(header, headerCount, selectedProfileRole);
+    if (placeColumn < 0 || positionColumn < 0 || profileColumn < 0)
+        throw GameException("locations.txt is missing the selected profile columns.");
+    string names[7];
+    char letters[7];
+    int positions[7];
+    for (int index = 0; index < 7; ++index)
+    {
+        do
+        {
+            if (!getline(locationsFile, line)) throw GameException("locations.txt must contain seven location records.");
+        } while (line.find('|') == string::npos);
+        int count = splitDataLine(line, fields, 20);
+        if (count <= profileColumn || count <= positionColumn || count <= placeColumn || fields[profileColumn].empty())
+            throw GameException("Invalid location record in locations.txt.");
+        names[index] = makeLocationNameReadable(fields[placeColumn]);
+        positions[index] = readLastNumber(fields[positionColumn], index + 1) - 1;
+        letters[index] = fields[profileColumn][0];
+    }
+    cottage->initializeLocations(names, letters, positions);
+    ifstream charactersFile("characters.txt");
+    if (!charactersFile) throw GameException("Required data file is missing: characters.txt");
+    while (getline(charactersFile, line) && line.find('|') == string::npos) {}
+    headerCount = splitDataLine(line, header, 20);
+    int cluePositionColumn = findColumnNumber(header, headerCount, "W2Pos");
+    profileColumn = findColumnNumber(header, headerCount, selectedProfileRole);
+    if (cluePositionColumn < 0 || profileColumn < 0)
+        throw GameException("characters.txt is missing the selected profile columns.");
+
+    for (int index = 0; index < characterCount; ++index)
+    {
+        do
+        {
+            if (!getline(charactersFile, line)) throw GameException("characters.txt must contain eight character records.");
+        } while (line.find('|') == string::npos);
+        int count = splitDataLine(line, fields, 20);
+        if (count <= profileColumn || count <= cluePositionColumn || fields[profileColumn].empty())
+            throw GameException("Invalid character clue in characters.txt.");
+        characters[index]->clueRowChar = Word_2;
+        characters[index]->letterClueChar = fields[profileColumn][0];
+        characters[index]->boardPosChar = readLastNumber(fields[cluePositionColumn], index + 1) - 1;
+        characters[index]->setInterviewed(false);
+    }
+    ifstream clueFile("clue.txt");
+    if (!clueFile) throw GameException("Required data file is missing: clue.txt");
+    while (getline(clueFile, line) && line.find('|') == string::npos) {}
+    headerCount = splitDataLine(line, header, 20);
+    int roleColumn = findColumnNumber(header, headerCount, "Culprit_Role");
+    int word1Column = findColumnNumber(header, headerCount, "Word_1");
+    int word2Column = findColumnNumber(header, headerCount, "Word_2");
+    if (roleColumn < 0 || word1Column < 0 || word2Column < 0)
+        throw GameException("clue.txt is missing required columns.");
+    targetWord1 = "";
+    targetWord2 = "";
+    while (getline(clueFile, line))
+    {
+        if (line.find('|') == string::npos) continue;
+        int count = splitDataLine(line, fields, 20);
+        if (count > roleColumn && count > word1Column && count > word2Column && fields[roleColumn] == selectedProfileRole)
+        {
+            targetWord1 = fields[word1Column];
+            targetWord2 = fields[word2Column];
+            break;
+        }
+    }
+    if (targetWord1.empty() || targetWord2.empty())
+        throw GameException("clue.txt has no record for the selected culprit profile.");
+    word1Solved = false;
+    word2Solved = false;
+}
+void GameEngine::loadRules()
+{
+    maximumTurns = 25;
+    startingCredibility = 100;
+    wrongTurnPenalty = 5;
+    wrongWordPenalty = 10;
+    ifstream input("rules.txt");
+    if (!input) throw GameException("Required data file is missing: rules.txt");
+    string line;
+    while (getline(input, line))
+    {
+        string lower = line;
+        for (size_t index = 0; index < lower.length(); ++index)
+            lower[index] = static_cast<char>(tolower(static_cast<unsigned char>(lower[index])));
+        if (lower.find("maximum") != string::npos || lower.find("max turns") != string::npos)
+            maximumTurns = readLastNumber(line, maximumTurns);
+        else if (lower.find("starts") != string::npos || lower.find("starting") != string::npos)
+            startingCredibility = readLastNumber(line, startingCredibility);
+        else if (lower.find("wrong word") != string::npos)
+            wrongWordPenalty = readLastNumber(line, wrongWordPenalty);
+        else if (lower.find("wrong") != string::npos)
+            wrongTurnPenalty = readLastNumber(line, wrongTurnPenalty);
+    }
+    if (maximumTurns <= 0) maximumTurns = 25;
+    if (startingCredibility < 0) startingCredibility = 100;
+    if (wrongTurnPenalty < 0) wrongTurnPenalty = 5;
+    if (wrongWordPenalty < 0) wrongWordPenalty = 10;
+}
+void GameEngine::validateDataFiles() const
+{
+    const char* files[6] = { "clue.txt", "locations.txt", "characters.txt", "rules.txt", "about.txt", "scoreBoard.txt" };
+    for (int index = 0; index < 6; ++index)
+    {
+        ifstream input(files[index]);
+        if (!input) throw GameException(string("Required data file is missing: ") + files[index]);
+        string firstLine;
+        if (!getline(input, firstLine) || firstLine.length() == 0)
+            throw GameException(string("Required data file is empty or corrupt: ") + files[index]);
+    }
+}
+
 
 
