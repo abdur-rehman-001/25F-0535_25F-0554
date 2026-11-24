@@ -298,6 +298,69 @@ public:
     GameException(const string& detail);
     const char* what() const noexcept override;
 };
+// Ye template  different data types ki array bana sakta hy
+template <typename T>
+class DynamicArray
+{
+private:
+    T* data;
+    int length;
+
+public:
+    DynamicArray(int size = 0) : data(0), length(size)
+    {
+        // Size di ho to array banao.
+        if (length > 0) data = new T[length];
+    }
+
+    DynamicArray(const DynamicArray<T>& other) : data(0), length(other.length)
+    {
+        // Doosri array ki alag copy banao.
+        if (length > 0)
+        {
+            data = new T[length];
+            for (int index = 0; index < length; ++index) data[index] = other.data[index];
+        }
+    }
+
+    DynamicArray<T>& operator=(const DynamicArray<T>& other)
+    {
+        // Current array ko doosri array ki copy se replace karo.
+        if (this != &other)
+        {
+            delete[] data;
+            length = other.length;
+            data = length > 0 ? new T[length] : 0;
+            for (int index = 0; index < length; ++index) data[index] = other.data[index];
+        }
+        return *this;
+    }
+
+    ~DynamicArray()
+    {
+        // Array ki memory free karo.
+        delete[] data;
+    }
+
+    int size() const
+    {
+        // Array ke elements ki tadaad return karo.
+        return length;
+    }
+
+    T& operator[](int index)
+    {
+        // Is index ka element change karne do.
+        return data[index];
+    }
+
+    const T& operator[](int index) const
+    {
+        // Element return karo, change na karne do.
+        return data[index];
+    }
+};
+
 
 
 
