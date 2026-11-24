@@ -289,6 +289,16 @@ public:
         int credibility, int turnsLeft, const string& culprit) const;
     void display() const;
 };
+// Game ke errors handle karne ke liye class
+class GameException : public exception
+{
+private:
+    string message;
+public:
+    GameException(const string& detail);
+    const char* what() const noexcept override;
+};
+
 
 
 
