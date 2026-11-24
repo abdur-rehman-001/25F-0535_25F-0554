@@ -344,4 +344,40 @@ void Scrabble::display() const
     cout << (isRowComplete(Word_2) ? " COMPLETE" : "") << endl;
 }
 
+TileRack::TileRack(int rackCapacity): tiles(rackCapacity), capacity(rackCapacity), count(0){}
+TileRack::TileRack(const TileRack& other): tiles(other.tiles), capacity(other.capacity), count(other.count){}
+TileRack& TileRack::operator=(const TileRack& other)
+{
+    if (this != &other)
+    {
+        tiles = other.tiles;
+        capacity = other.capacity;
+        count = other.count;
+    }
+    return *this;
+}
+TileRack::~TileRack(){}
+void TileRack::addTile(const Tile& tile)
+{
+    if (count >= capacity) throw GameException("Tile rack is full.");
+    tiles[count] = tile;
+    ++count;
+}
+void TileRack::removeAll()
+{
+    count = 0;
+}
+void TileRack::display() const
+{
+    cout << "Rack: ";
+    if (count == 0) { cout << "(empty)" << endl; return; }
+    for (int index = 0; index < count; ++index) cout << tiles[index].tileLetter << " ";
+    cout << endl;
+}
+int TileRack::getCount() const
+{
+    return count;
+}
+
+
 
