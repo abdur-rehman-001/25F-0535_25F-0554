@@ -699,4 +699,10 @@ void GameEngine::validateDataFiles() const
 }
 
 
+GameException::GameException(const string& detail): message("HEIST ERROR: " + detail){}
+const char* GameException::what() const noexcept
+{
+    return message.c_str();
+
+
 
