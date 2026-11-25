@@ -125,3 +125,36 @@ class Scrabble;
 class TileRack;
 class GameEngine;
 
+// Game ke total  logon ki base class
+class Character
+{
+protected:
+    string characterName;
+    string characterRole;
+    string nationality;
+    bool isCulprit;
+    bool interviewed;
+    WordRow clueRowChar;
+    char letterClueChar;
+    int boardPosChar;
+
+public:
+    Character(const string& name = "", const string& role = "", const string& nation = "");
+    Character(const Character& other);
+    Character& operator=(const Character& other);
+    virtual ~Character();
+    virtual void display() const = 0;
+    virtual bool canBeInterviewed(int credibility) const;
+    void setCulprit(bool value);
+    bool getIsCulprit() const;
+    bool getInterviewed() const;
+    void setInterviewed(bool value);
+    const string& getName() const;
+    const string& getRole() const;
+    const string& getNationality() const;
+    Clue getClue() const;
+    friend ostream& operator<<(ostream& output, const Character& character);
+    friend istream& operator>>(istream& input, Character& character);
+    friend class GameEngine;
+};
+
