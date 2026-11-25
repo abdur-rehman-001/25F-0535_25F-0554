@@ -244,3 +244,41 @@ public:
     bool canBeInterviewed(int credibility) const override;
 };
 
+// Cottage locations ko DynamicArray mein rakhta hai
+class Cottage
+{
+private:
+    DynamicArray<Location> LocCache;
+    int locationCount;
+public:
+    Cottage();
+    Cottage(const Cottage& other);
+    Cottage& operator=(const Cottage& other);
+    ~Cottage();
+    void initializeLocations(const char letters[7]);
+    void initializeLocations(const string names[7], const char letters[7], const int positions[7]);
+    void displayLocations() const;
+    Clue searchLocation(int index);
+    bool hasBeenSearched(int index) const;
+    int getLocationCount() const;
+    const Location& getLocation(int index) const;
+};
+// Scrabble board ki dono rows ko manage karta hai
+class Scrabble
+{
+private:
+    DynamicArray<Tile>* board;
+    int rowSizes[2];
+public:
+    Scrabble();
+    Scrabble(const Scrabble& other);
+    Scrabble& operator=(const Scrabble& other);
+    ~Scrabble();
+    void clear();
+    void placeClue(const Clue& clue);
+    bool isRowComplete(WordRow row) const;
+    bool isComplete() const;
+    string formWord(WordRow row) const;
+    void display() const;
+
+
