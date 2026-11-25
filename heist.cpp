@@ -111,3 +111,47 @@ string makeLocationNameReadable(string locationName)
     }
     return locationName;
 }
+
+GameEngine* GameEngine::instance = 0;
+
+Tile::Tile(char letter, bool tileFilled): tileLetter(letter), filled(tileFilled){}
+
+Clue::Clue(char letter, int position, WordRow row): clueLetter(letter), cluePosition(position), clueRow(row){}
+
+Location::Location(): locName(""), letterClueLoc(' '), boardPosLoc(-1), locRow(Word_1), locSearchFlag(false){}
+Location::Location(const string& name, char letter, int position, WordRow row): locName(name), letterClueLoc(letter), boardPosLoc(position), locRow(row), locSearchFlag(false){}
+
+bool Tile::operator==(const Tile& other) const
+{
+    return tileLetter == other.tileLetter && filled == other.filled;
+}
+bool Tile::operator!=(const Tile& other) const
+{
+    return !(*this == other);
+}
+
+ostream& operator<<(ostream& output, const Tile& tile)
+{
+    output << tile.tileLetter << " " << tile.filled;
+    return output;
+}
+istream& operator>>(istream& input, Tile& tile)
+{
+    input >> tile.tileLetter >> tile.filled;
+    return input;
+}
+ostream& operator<<(ostream& output, const Location& location)
+{
+    output << location.locName << " " << location.letterClueLoc << " "
+        << location.boardPosLoc << " " << location.locRow << " "<< location.locSearchFlag;
+    return output;
+}
+istream& operator>>(istream& input, Location& location)
+{
+    int row;
+    input >> location.locName >> location.letterClueLoc >> location.boardPosLoc >> row
+        >> location.locSearchFlag;
+    location.locRow = static_cast<WordRow>(row);
+    return input;
+}
+
