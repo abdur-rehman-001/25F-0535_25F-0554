@@ -155,3 +155,83 @@ istream& operator>>(istream& input, Location& location)
     return input;
 }
 
+GameException::GameException(const string& detail): message("HEIST ERROR: " + detail){}
+const char* GameException::what() const noexcept
+{
+    return message.c_str();
+}
+
+Character::Character(const string& name, const string& role, const string& nation)
+    : characterName(name), characterRole(role), nationality(nation), isCulprit(false),
+    interviewed(false), clueRowChar(Word_2), letterClueChar(' '), boardPosChar(-1){}
+Character::Character(const Character& other)
+    : characterName(other.characterName), characterRole(other.characterRole),
+    nationality(other.nationality), isCulprit(other.isCulprit), interviewed(other.interviewed),
+    clueRowChar(other.clueRowChar), letterClueChar(other.letterClueChar), boardPosChar(other.boardPosChar){}
+Character& Character::operator=(const Character& other)
+{
+    if (this != &other)
+    {
+        characterName = other.characterName;
+        characterRole = other.characterRole;
+        nationality = other.nationality;
+        isCulprit = other.isCulprit;
+        interviewed = other.interviewed;
+        clueRowChar = other.clueRowChar;
+        letterClueChar = other.letterClueChar;
+        boardPosChar = other.boardPosChar;
+    }
+    return *this;
+}
+Character::~Character()
+{
+}
+bool Character::canBeInterviewed(int credibility) const
+{
+    return credibility > 0;
+}
+// ye setters aur getters
+void Character::setCulprit(bool value)
+{
+    isCulprit = value;
+}
+bool Character::getIsCulprit() const
+{
+    return isCulprit;
+}
+bool Character::getInterviewed() const
+{
+    return interviewed;
+}
+void Character::setInterviewed(bool value)
+{
+    interviewed = value;
+}
+const string& Character::getName() const
+{
+    return characterName;
+}
+const string& Character::getRole() const
+{
+    return characterRole;
+}
+const string& Character::getNationality() const
+{
+    return nationality;
+}
+Clue Character::getClue() const
+{
+    return Clue(letterClueChar, boardPosChar, clueRowChar);
+}
+ostream& operator<<(ostream& output, const Character& character)
+{
+    output << character.characterName << " (" << character.characterRole << ", "
+        << character.nationality << ")";
+    return output;
+}
+istream& operator>>(istream& input, Character& character)
+{
+    input >> character.characterName >> character.nationality;
+    return input;
+}
+
