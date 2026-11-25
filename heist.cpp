@@ -235,3 +235,298 @@ istream& operator>>(istream& input, Character& character)
     return input;
 }
 
+Victim::Victim(const string& name, const string& nation): Character(name, "Business Owner", nation){}
+void Victim::display() const
+{
+    cout << characterName << " [Victim - " << nationality << "]" << endl;
+}
+bool Victim::canBeInterviewed(int credibility) const
+{
+    return credibility >= 80;
+}
+
+Suspect::Suspect(const string& name, const string& role, const string& nation): Character(name, role, nation){}
+void Suspect::display() const
+{
+    cout << characterName << " [Suspect - " << characterRole << ", " << nationality << "]" << endl;
+}
+bool Suspect::canBeInterviewed(int credibility) const
+{
+    return credibility > 0;
+}
+
+Detective::Detective(const string& name): Character(name, "Detective", "Player"), credibility(100), turns(0){}
+void Detective::display() const
+{
+    cout << characterName << " [Detective] Credibility: " << credibility<< " | Turns: " << turns << endl;
+}
+bool Detective::canBeInterviewed(int credibilityValue) const
+{
+    return credibilityValue < 0;
+}
+void Detective::reset(const string& name)
+{
+    characterName = name;
+    credibility = 100;
+    turns = 0;
+    interviewed = false;
+}
+void Detective::reset(const string& name, int initialCredibility)
+{
+    characterName = name;
+    credibility = initialCredibility < 0 ? 0 : initialCredibility;
+    turns = 0;
+    interviewed = false;
+}
+void Detective::reduceCredibility(int amount)
+{
+    credibility -= amount;
+    if (credibility < 0)
+    {
+        credibility = 0;
+    }
+}
+void Detective::useTurn()
+{
+    ++turns;
+}
+int Detective::getCredibility() const
+{
+    return credibility;
+}
+int Detective::getTurns() const
+{
+    return turns;
+}
+
+BusinessRelations::BusinessRelations(const string& name, const string& role, const string& nation): Character(), Suspect(name, role, nation){}
+void BusinessRelations::display() const
+{
+    cout << characterName << " [Business Relation - " << characterRole << "]" << endl;
+}
+HouseHelp::HouseHelp(const string& name, const string& role, const string& nation): Character(), Suspect(name, role, nation){}
+void HouseHelp::display() const
+{
+    cout << characterName << " [House Help - " << characterRole << "]" << endl;
+}
+CloseRelations::CloseRelations(const string& name, const string& role, const string& nation): Character(), Suspect(name, role, nation){  }
+void CloseRelations::display() const
+{
+    cout << characterName << " [Close Relation - " << characterRole << "]" << endl;
+}
+Partner::Partner(const string& name, const string& nation): Character(name, "Partner", nation), Suspect(name, "Partner", nation),BusinessRelations(name, "Partner", nation){}
+bool Partner::canBeInterviewed(int credibility) const
+{
+    return credibility >= 50;
+}
+Cook::Cook(const string& name, const string& nation): Character(name, "Cook", nation), Suspect(name, "Cook", nation),HouseHelp(name, "Cook", nation){}
+Guard::Guard(const string& name, const string& nation): Character(name, "Guard", nation), Suspect(name, "Guard", nation),HouseHelp(name, "Guard", nation){}
+Servant::Servant(const string& name, const string& nation): Character(name, "Servant", nation), Suspect(name, "Servant", nation),HouseHelp(name, "Servant", nation){}
+Child::Child(const string& name, const string& nation): Character(name, "Child", nation), Suspect(name, "Child", nation),CloseRelations(name, "Child", nation){}
+bool Child::canBeInterviewed(int credibility) const
+{
+    return credibility >= 75;
+}
+PA::PA(const string& name, const string& nation): Character(name, "PA", nation), Suspect(name, "PA", nation),BusinessRelations(name, "PA", nation),CloseRelations(name, "PA", nation){}
+void PA::display() const
+{
+    cout << characterName << " [PA - Business and Close Relation, " << nationality << "]" << endl;
+}
+bool PA::canBeInterviewed(int credibility) const
+{
+    return credibility >= 35;
+}
+
+Cottage::Cottage(): LocCache(7), locationCount(7)
+{
+    const char defaultLetters[7] = { 'L', 'O', 'O', 'T', 'E', 'R', 'S' };
+    initializeLocations(defaultLetters);
+}
+Cottage::Cottage(const Cottage& other): LocCache(other.LocCache), locationCount(other.locationCount){}
+Cottage& Cottage::operator=(const Cottage& other)
+{
+    if (this != &other)
+    {
+        LocCache = other.LocCache;
+        locationCount = other.locationCount;
+    }
+    return *this;
+}
+Cottage::~Cottage(){}
+void Cottage::initializeLocations(const char letters[7])
+{
+    const string names[7] = { "Bedroom 1", "Bedroom 2", "Study Room", "Garden","Kitchen", "Dining Room", "Living Room" };
+    const int positions[7] = { 0, 1, 2, 3, 4, 5, 6 };
+    initializeLocations(names, letters, positions);
+}
+void Cottage::initializeLocations(const string names[7], const char letters[7], const int positions[7])
+{
+    for (int index = 0; index < locationCount; ++index)
+        LocCache[index] = Location(names[index], letters[index], positions[index], Word_1);
+}
+void Cottage::displayLocations() const
+{
+    cout << endl << "====== Location Menu ======" << endl;
+    for (int index = 0; index < locationCount; ++index)
+        cout << "[" << index + 1 << "] " << LocCache[index].locName << " - "
+        << (LocCache[index].locSearchFlag ? "Searched" : "NOT Searched") << endl;
+    cout << "===========================" << endl;
+}
+Clue Cottage::searchLocation(int index)
+{
+    if (index < 0 || index >= locationCount) throw GameException("Invalid location index.");
+    LocCache[index].locSearchFlag = true;
+    return Clue(LocCache[index].letterClueLoc, LocCache[index].boardPosLoc, LocCache[index].locRow);
+}
+bool Cottage::hasBeenSearched(int index) const
+{
+    if (index < 0 || index >= locationCount) return false;
+    return LocCache[index].locSearchFlag;
+}
+int Cottage::getLocationCount() const
+{
+    return locationCount;
+}
+const Location& Cottage::getLocation(int index) const
+{
+    if (index < 0 || index >= locationCount) throw GameException("Invalid location index.");
+    return LocCache[index];
+}
+
+Scrabble::Scrabble(): board(0)
+{
+    rowSizes[0] = 7;
+    rowSizes[1] = 8;
+    board = new DynamicArray<Tile>[2];
+    board[0] = DynamicArray<Tile>(rowSizes[0]);
+    board[1] = DynamicArray<Tile>(rowSizes[1]);
+}
+Scrabble::Scrabble(const Scrabble& other): board(0)
+{
+    rowSizes[0] = other.rowSizes[0];
+    rowSizes[1] = other.rowSizes[1];
+    board = new DynamicArray<Tile>[2];
+    board[0] = other.board[0];
+    board[1] = other.board[1];
+}
+Scrabble& Scrabble::operator=(const Scrabble& other)
+{
+    if (this != &other)
+    {
+        clear();
+        rowSizes[0] = other.rowSizes[0];
+        rowSizes[1] = other.rowSizes[1];
+        board = new DynamicArray<Tile>[2];
+        board[0] = other.board[0];
+        board[1] = other.board[1];
+    }
+    return *this;
+}
+Scrabble::~Scrabble()
+{
+    clear();
+}
+void Scrabble::clear()
+{
+    if (board != 0)
+    {
+        delete[] board;
+        board = 0;
+    }
+}
+void Scrabble::placeClue(const Clue& clue)
+{
+    int row = clue.clueRow;
+    if (row < 0 || row > 1 || clue.cluePosition < 0 || clue.cluePosition >= rowSizes[row])
+        throw GameException("Invalid board position.");
+    if (board[row][clue.cluePosition].filled)
+        throw GameException("This Scrabble slot is already filled.");
+    board[row][clue.cluePosition] = Tile(clue.clueLetter, true);
+}
+bool Scrabble::isRowComplete(WordRow row) const
+{
+    int rowNumber = row;
+    if (rowNumber < 0 || rowNumber > 1) return false;
+    for (int index = 0; index < rowSizes[rowNumber]; ++index)
+        if (!board[rowNumber][index].filled) return false;
+    return true;
+}
+bool Scrabble::isComplete() const
+{
+    return isRowComplete(Word_1) && isRowComplete(Word_2);
+}
+string Scrabble::formWord(WordRow row) const
+{
+    int rowNumber = row;
+    string word = "";
+    if (rowNumber < 0 || rowNumber > 1) return word;
+    for (int index = 0; index < rowSizes[rowNumber]; ++index)
+        word += board[rowNumber][index].tileLetter;
+    return word;
+}
+void Scrabble::display() const
+{
+    cout << endl << "Scrabble Board:" << endl;
+    cout << " Word 1: ";
+    for (int index = 0; index < rowSizes[0]; ++index)
+        cout << "[" << (board[0][index].filled ? board[0][index].tileLetter : ' ') << "] ";
+    cout << (isRowComplete(Word_1) ? " COMPLETE" : "") << endl;
+    cout << " Word 2: ";
+    for (int index = 0; index < rowSizes[1]; ++index)
+        cout << "[" << (board[1][index].filled ? board[1][index].tileLetter : ' ') << "] ";
+    cout << (isRowComplete(Word_2) ? " COMPLETE" : "") << endl;
+}
+ostream& operator<<(ostream& output, const Scrabble& scrabble)
+{
+    output << "Word 1: " << scrabble.formWord(Word_1) << " | Word 2: " << scrabble.formWord(Word_2);
+    return output;
+}
+istream& operator>>(istream& input, Scrabble& scrabble)
+{
+    string first, second;
+    input >> first >> second;
+    if (first.length() != 7 || second.length() != 8) throw GameException("Scrabble words have invalid lengths.");
+    scrabble.clear();
+    scrabble.board = new DynamicArray<Tile>[2];
+    scrabble.board[0] = DynamicArray<Tile>(7);
+    scrabble.board[1] = DynamicArray<Tile>(8);
+    for (int index = 0; index < 7; ++index) scrabble.board[0][index] = Tile(first[index], true);
+    for (int index = 0; index < 8; ++index) scrabble.board[1][index] = Tile(second[index], true);
+    return input;
+}
+
+TileRack::TileRack(int rackCapacity): tiles(rackCapacity), capacity(rackCapacity), count(0){}
+TileRack::TileRack(const TileRack& other): tiles(other.tiles), capacity(other.capacity), count(other.count){}
+TileRack& TileRack::operator=(const TileRack& other)
+{
+    if (this != &other)
+    {
+        tiles = other.tiles;
+        capacity = other.capacity;
+        count = other.count;
+    }
+    return *this;
+}
+TileRack::~TileRack(){}
+void TileRack::addTile(const Tile& tile)
+{
+    if (count >= capacity) throw GameException("Tile rack is full.");
+    tiles[count] = tile;
+    ++count;
+}
+void TileRack::removeAll()
+{
+    count = 0;
+}
+void TileRack::display() const
+{
+    cout << "Rack: ";
+    if (count == 0) { cout << "(empty)" << endl; return; }
+    for (int index = 0; index < count; ++index) cout << tiles[index].tileLetter << " ";
+    cout << endl;
+}
+int TileRack::getCount() const
+{
+    return count;
+}
+
