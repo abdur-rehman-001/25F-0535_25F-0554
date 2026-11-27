@@ -1016,6 +1016,79 @@ int GameEngine::readChoice(int minimum, int maximum) const
         cin.ignore(10000, '\n');
     }
 }
+void GameEngine::run()
+{
+    bool running = true;
+    while (running)
+    {
+        if (state == Playing)
+        {
+            if (detective->getTurns() >= maximumTurns || detective->getCredibility() <= 0)
+            {
+                cout << endl << "The game has ended because the limit was reached." << endl;
+                finishGame(false);
+            }
+            if (state != Playing) continue;
+
+            showGameMenu();
+            int choice = readChoice(1, 6);
+            if (choice == 1)
+            {
+                try { visitLocation(); }
+                catch (const GameException& error) { cout << error.what() << endl; }
+            }
+            else if (choice == 2)
+            {
+                try { interviewPerson(); }
+                catch (const GameException& error) { cout << error.what() << endl; }
+            }
+            else if (choice == 3)
+            {
+                scrabble->display();
+            }
+            else if (choice == 4)
+            {
+                formWord();
+            }
+            else if (choice == 5)
+            {
+                accuseSuspect();
+            }
+            else
+            {
+                state = Menu;
+            }
+        }
+        else
+        {
+            showMainMenu();
+            int choice = readChoice(1, 5);
+            if (choice == New_Game)
+            {
+                startNewGame();
+            }
+            else if (choice == Leader_Score_Board)
+            {
+                showScoreBoard();
+            }
+            else if (choice == About)
+            {
+                showAbout();
+            }
+            else if (choice == Rules)
+            {
+                showRules();
+            }
+            else
+            {
+                state = Exit;
+                running = false;
+            }
+        }
+    }
+    cout << "Thank you for playing The Locker Heist." << endl;
+}
+
 
 
 
