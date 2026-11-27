@@ -337,6 +337,9 @@ private:
     int wrongTurnPenalty;
     int wrongWordPenalty;
     string selectedProfileRole;
+    GameEngine();
+    GameEngine(const GameEngine& other);
+    GameEngine& operator=(const GameEngine& other);
 
 
 
