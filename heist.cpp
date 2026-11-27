@@ -618,6 +618,133 @@ GameEngine& GameEngine::getInstance()
     }
     return *instance;
 }
+void GameEngine::buildCharacters()
+{
+    ifstream input("characters.txt");
+    if (!input) throw GameException("Required data file is missing: characters.txt");
+    string header[20], fields[20], line;
+    int headerCount = 0;
+    while (getline(input, line) && line.find('|') == string::npos) {}
+    if (line.empty()) throw GameException("characters.txt has no header.");
+    headerCount = splitDataLine(line, header, 20);
+    int roleColumn = findColumnNumber(header, headerCount, "Role");
+    int nationalityColumn = findColumnNumber(header, headerCount, "Nationality");
+    if (roleColumn < 0 || nationalityColumn < 0)
+        throw GameException("characters.txt is missing Role or Nationality columns.");
+    for (int index = 0; index < characterCount; ++index)
+    {
+        do
+        {
+            if (!getline(input, line)) throw GameException("characters.txt must contain eight character records.");
+        } while (line.find('|') == string::npos);
+        int count = splitDataLine(line, fields, 20);
+        if (count <= roleColumn || count <= nationalityColumn || fields[0].empty())
+            throw GameException("Invalid character record in characters.txt.");
+
+        string name = fields[0];
+        string role = fields[roleColumn];
+        string nation = fields[nationalityColumn];
+        if (index == 0 || role == "BusinessOwner")
+            characters[index] = new Victim(name, nation);
+        else if (role == "Cook")
+            characters[index] = new Cook(name, nation);
+        else if (role == "Guard")
+            characters[index] = new Guard(name, nation);
+        else if (role == "Servant")
+            characters[index] = new Servant(name, nation);
+        else if (role == "Child")
+            characters[index] = new Child(name, nation);
+        else if (role == "Partner_1" || role == "Partner_2")
+            characters[index] = new Partner(name, nation);
+        else if (role == "PA")
+            characters[index] = new PA(name, nation);
+        else
+            throw GameException("Unknown character role in characters.txt: " + role);
+        // Data file wala bilkul same role name 
+        characters[index]->characterRole = role;
+    }
+}
+void GameEngine::loadSelectedProfile()
+{
+    selectedProfileRole = getCulpritProfileName(culpritIndex);
+    if (selectedProfileRole.empty()) throw GameException("Invalid culprit profile.");
+    ifstream locationsFile("locations.txt");
+    if (!locationsFile) throw GameException("Required data file is missing: locations.txt");
+    string header[20], fields[20], line;
+    while (getline(locationsFile, line) && line.find('|') == string::npos) {}
+    int headerCount = splitDataLine(line, header, 20);
+    int placeColumn = findColumnNumber(header, headerCount, "Place");
+    int positionColumn = findColumnNumber(header, headerCount, "W1Pos");
+    int profileColumn = findColumnNumber(header, headerCount, selectedProfileRole);
+    if (placeColumn < 0 || positionColumn < 0 || profileColumn < 0)
+        throw GameException("locations.txt is missing the selected profile columns.");
+    string names[7];
+    char letters[7];
+    int positions[7];
+    for (int index = 0; index < 7; ++index)
+    {
+        do
+        {
+            if (!getline(locationsFile, line)) throw GameException("locations.txt must contain seven location records.");
+        } while (line.find('|') == string::npos);
+        int count = splitDataLine(line, fields, 20);
+        if (count <= profileColumn || count <= positionColumn || count <= placeColumn || fields[profileColumn].empty())
+            throw GameException("Invalid location record in locations.txt.");
+        names[index] = makeLocationNameReadable(fields[placeColumn]);
+        positions[index] = readLastNumber(fields[positionColumn], index + 1) - 1;
+        letters[index] = fields[profileColumn][0];
+    }
+    cottage->initializeLocations(names, letters, positions);
+    ifstream charactersFile("characters.txt");
+    if (!charactersFile) throw GameException("Required data file is missing: characters.txt");
+    while (getline(charactersFile, line) && line.find('|') == string::npos) {}
+    headerCount = splitDataLine(line, header, 20);
+    int cluePositionColumn = findColumnNumber(header, headerCount, "W2Pos");
+    profileColumn = findColumnNumber(header, headerCount, selectedProfileRole);
+    if (cluePositionColumn < 0 || profileColumn < 0)
+        throw GameException("characters.txt is missing the selected profile columns.");
+
+    for (int index = 0; index < characterCount; ++index)
+    {
+        do
+        {
+            if (!getline(charactersFile, line)) throw GameException("characters.txt must contain eight character records.");
+        } while (line.find('|') == string::npos);
+        int count = splitDataLine(line, fields, 20);
+        if (count <= profileColumn || count <= cluePositionColumn || fields[profileColumn].empty())
+            throw GameException("Invalid character clue in characters.txt.");
+        characters[index]->clueRowChar = Word_2;
+        characters[index]->letterClueChar = fields[profileColumn][0];
+        characters[index]->boardPosChar = readLastNumber(fields[cluePositionColumn], index + 1) - 1;
+        characters[index]->setInterviewed(false);
+    }
+    ifstream clueFile("clue.txt");
+    if (!clueFile) throw GameException("Required data file is missing: clue.txt");
+    while (getline(clueFile, line) && line.find('|') == string::npos) {}
+    headerCount = splitDataLine(line, header, 20);
+    int roleColumn = findColumnNumber(header, headerCount, "Culprit_Role");
+    int word1Column = findColumnNumber(header, headerCount, "Word_1");
+    int word2Column = findColumnNumber(header, headerCount, "Word_2");
+    if (roleColumn < 0 || word1Column < 0 || word2Column < 0)
+        throw GameException("clue.txt is missing required columns.");
+    targetWord1 = "";
+    targetWord2 = "";
+    while (getline(clueFile, line))
+    {
+        if (line.find('|') == string::npos) continue;
+        int count = splitDataLine(line, fields, 20);
+        if (count > roleColumn && count > word1Column && count > word2Column && fields[roleColumn] == selectedProfileRole)
+        {
+            targetWord1 = fields[word1Column];
+            targetWord2 = fields[word2Column];
+            break;
+        }
+    }
+    if (targetWord1.empty() || targetWord2.empty())
+        throw GameException("clue.txt has no record for the selected culprit profile.");
+    word1Solved = false;
+    word2Solved = false;
+}
 
 
 
