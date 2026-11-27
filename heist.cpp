@@ -537,3 +537,40 @@ TileRack TileRack::operator+(const TileRack& other) const
     return merged;
 }
 
+ScoreBoard::ScoreBoard(const string& path): fileName(path){}
+void ScoreBoard::appendResult(const string& detectiveName, const string& result,int credibility, int turnsLeft, const string& culprit) const
+{
+    ofstream output(fileName.c_str(), ios::app);
+    if (!output) throw GameException("Unable to open scoreboard for writing.");
+    time_t currentTime = time(0);
+    char dateBuffer[26];
+#ifdef _MSC_VER
+    ctime_s(dateBuffer, sizeof(dateBuffer), &currentTime);
+#else
+    const char* portableDate = ctime(&currentTime);
+    int dateIndex = 0;
+    if (portableDate != 0)
+    {
+        while (portableDate[dateIndex] != '\0' && dateIndex < 25)
+        {
+            dateBuffer[dateIndex] = portableDate[dateIndex];
+            ++dateIndex;
+        }
+    }
+    dateBuffer[dateIndex] = '\0';
+#endif
+    string date = dateBuffer;
+    if (!date.empty() && date[date.length() - 1] == '\n') date.erase(date.length() - 1);
+    output << "| " << detectiveName << " | " << result << " | " << credibility
+        << " | " << turnsLeft << " | " << culprit << " | " << date << " |" << endl;
+}
+void ScoreBoard::display() const
+{
+    ifstream input(fileName.c_str());
+    if (!input) throw GameException("Scoreboard file was not found.");
+    string line;
+    cout << endl << "========== LEADER / SCORE BOARD ==========" << endl;
+    while (getline(input, line)) cout << line << endl;
+    cout << "==========================================" << endl;
+}
+
