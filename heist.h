@@ -301,5 +301,16 @@ public:
     int getCount() const;
     TileRack operator+(const TileRack& other) const;
 };
+// ScoreBoard GameEngine ke results file mein save kar raha hy
+class ScoreBoard
+{
+private:
+    string fileName;
+public:
+    ScoreBoard(const string& path = "scoreBoard.txt");
+    void appendResult(const string& detectiveName, const string& result,
+        int credibility, int turnsLeft, const string& culprit) const;
+    void display() const;
+};
 
 
