@@ -328,5 +328,16 @@ private:
     int characterCount;
     int culpritIndex;
     ScoreBoard* scoreBoard;
+    string targetWord1;
+    string targetWord2;
+    bool word1Solved;
+    bool word2Solved;
+    int maximumTurns;
+    int startingCredibility;
+    int wrongTurnPenalty;
+    int wrongWordPenalty;
+    string selectedProfileRole;
+
+
 
 
