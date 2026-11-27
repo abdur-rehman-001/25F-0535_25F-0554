@@ -340,7 +340,11 @@ private:
     GameEngine();
     GameEngine(const GameEngine& other);
     GameEngine& operator=(const GameEngine& other);
-
+    void buildCharacters();
+    void loadSelectedProfile();
+    void loadRules();
+    void validateDataFiles() const;
+    void startNewGame();
 
 
 
