@@ -960,6 +960,26 @@ void GameEngine::finishGame(bool playerWon)
     scoreBoard->appendResult(detective->getName(), result, detective->getCredibility(),
         turnsLeft, characters[culpritIndex]->getRole());
 }
+void GameEngine::showAbout() const
+{
+    ifstream input("about.txt");
+    if (!input) throw GameException("Unable to open about.txt.");
+    cout << endl << "";
+    string line;
+    while (getline(input, line)) cout << line << endl;
+}
+void GameEngine::showRules() const
+{
+    ifstream input("rules.txt");
+    if (!input) throw GameException("Unable to open rules.txt.");
+    cout << endl << "";
+    string line;
+    while (getline(input, line)) cout << line << endl;
+}
+void GameEngine::showScoreBoard()
+{
+    scoreBoard->display();
+}
 
 
 
