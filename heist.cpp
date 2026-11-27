@@ -609,5 +609,15 @@ GameEngine::~GameEngine()
     delete detective;
     instance = 0;
 }
+GameEngine& GameEngine::getInstance()
+{
+    if (instance == 0)
+    {
+        instance = new GameEngine();
+        srand(static_cast<unsigned int>(time(0)));
+    }
+    return *instance;
+}
+
 
 
