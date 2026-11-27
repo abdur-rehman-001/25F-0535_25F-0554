@@ -299,4 +299,7 @@ public:
     void removeAll();
     void display() const;
     int getCount() const;
+    TileRack operator+(const TileRack& other) const;
+};
+
 
