@@ -980,6 +980,43 @@ void GameEngine::showScoreBoard()
 {
     scoreBoard->display();
 }
+void GameEngine::showMainMenu() const
+{
+    cout << endl << "========== THE LOCKER HEIST - MAIN MENU ==========" << endl
+        << "[1] New Game" << endl
+        << "[2] View Leader/Score Board" << endl
+        << "[3] About" << endl
+        << "[4] Rules" << endl
+        << "[5] Exit" << endl
+        << "===================================================" << endl;
+}
+void GameEngine::showGameMenu() const
+{
+    cout << endl << "========== GAME MENU ==========" << endl
+        << "[1] Visit a Location" << endl
+        << "[2] Interview a Person" << endl
+        << "[3] View Scrabble Board" << endl
+        << "[4] Form a Word" << endl
+        << "[5] Accuse a Suspect" << endl
+        << "[6] Quit" << endl
+        << "===============================" << endl;
+}
+int GameEngine::readChoice(int minimum, int maximum) const
+{
+    int choice;
+    while (true)
+    {
+        cout << "Choice: ";
+        if (cin >> choice && choice >= minimum && choice <= maximum)
+        {
+            return choice;
+        }
+        cout << "HEIST ERROR: Enter a number from " << minimum << " to " << maximum << "." << endl;
+        cin.clear();
+        cin.ignore(10000, '\n');
+    }
+}
+
 
 
 
