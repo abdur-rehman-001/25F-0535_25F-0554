@@ -745,6 +745,47 @@ void GameEngine::loadSelectedProfile()
     word1Solved = false;
     word2Solved = false;
 }
+void GameEngine::loadRules()
+{
+    maximumTurns = 25;
+    startingCredibility = 100;
+    wrongTurnPenalty = 5;
+    wrongWordPenalty = 10;
+    ifstream input("rules.txt");
+    if (!input) throw GameException("Required data file is missing: rules.txt");
+    string line;
+    while (getline(input, line))
+    {
+        string lower = line;
+        for (size_t index = 0; index < lower.length(); ++index)
+            lower[index] = static_cast<char>(tolower(static_cast<unsigned char>(lower[index])));
+        if (lower.find("maximum") != string::npos || lower.find("max turns") != string::npos)
+            maximumTurns = readLastNumber(line, maximumTurns);
+        else if (lower.find("starts") != string::npos || lower.find("starting") != string::npos)
+            startingCredibility = readLastNumber(line, startingCredibility);
+        else if (lower.find("wrong word") != string::npos)
+            wrongWordPenalty = readLastNumber(line, wrongWordPenalty);
+        else if (lower.find("wrong") != string::npos)
+            wrongTurnPenalty = readLastNumber(line, wrongTurnPenalty);
+    }
+    if (maximumTurns <= 0) maximumTurns = 25;
+    if (startingCredibility < 0) startingCredibility = 100;
+    if (wrongTurnPenalty < 0) wrongTurnPenalty = 5;
+    if (wrongWordPenalty < 0) wrongWordPenalty = 10;
+}
+void GameEngine::validateDataFiles() const
+{
+    const char* files[6] = { "clue.txt", "locations.txt", "characters.txt", "rules.txt", "about.txt", "scoreBoard.txt" };
+    for (int index = 0; index < 6; ++index)
+    {
+        ifstream input(files[index]);
+        if (!input) throw GameException(string("Required data file is missing: ") + files[index]);
+        string firstLine;
+        if (!getline(input, firstLine) || firstLine.length() == 0)
+            throw GameException(string("Required data file is empty or corrupt: ") + files[index]);
+    }
+}
+
 
 
 
