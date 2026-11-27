@@ -345,6 +345,8 @@ private:
     void loadRules();
     void validateDataFiles() const;
     void startNewGame();
+    void visitLocation();
+    void interviewPerson();
 
 
 
