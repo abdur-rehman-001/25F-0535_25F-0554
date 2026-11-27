@@ -280,5 +280,7 @@ public:
     bool isComplete() const;
     string formWord(WordRow row) const;
     void display() const;
-
+    friend ostream& operator<<(ostream& output, const Scrabble& scrabble);
+    friend istream& operator>>(istream& input, Scrabble& scrabble);
+};
 
