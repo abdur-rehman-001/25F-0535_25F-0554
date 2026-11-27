@@ -880,7 +880,87 @@ void GameEngine::interviewPerson()
     characterRack->addTile(Tile(clue.clueLetter, true));
     detective->useTurn();
     cout << "Letter " << clue.clueLetter << " collected at position "<< clue.cluePosition + 1 << " of Word 2 and placed." << endl;
+}void GameEngine::formWord()
+{
+    if (!scrabble->isRowComplete(Word_1) && !scrabble->isRowComplete(Word_2))
+    {
+        cout << "Collect all letters in at least one row before forming a word." << endl;
+        return;
+    }
+    int rowChoice;
+    cout << "Form which word? [1] Word 1  [2] Word 2: ";
+    cin >> rowChoice;
+    string answer;
+    if (rowChoice == 1)
+    {
+        if (!scrabble->isRowComplete(Word_1)) { cout << "Word 1 is not complete yet." << endl; return; }
+        cout << "Enter Word 1: ";
+        cin >> answer;
+        if (answer == targetWord1) { word1Solved = true; cout << "Correct Word 1!" << endl; }
+        else { detective->reduceCredibility(wrongWordPenalty); cout << "Wrong word. Credibility reduced by " << wrongWordPenalty << "." << endl; }
+    }
+    else if (rowChoice == 2)
+    {
+        if (!scrabble->isRowComplete(Word_2)) { cout << "Word 2 is not complete yet." << endl; return; }
+        cout << "Enter Word 2: ";
+        cin >> answer;
+        if (answer == targetWord2) { word2Solved = true; cout << "Correct Word 2!" << endl; }
+        else { detective->reduceCredibility(wrongWordPenalty); cout << "Wrong word. Credibility reduced by " << wrongWordPenalty << "." << endl; }
+    }
+    else
+    {
+        cout << "Invalid word row." << endl;
+    }
+    detective->useTurn();
 }
+void GameEngine::accuseSuspect()
+{
+    if (!word1Solved || !word2Solved)
+    {
+        cout << "Solve both words before making an accusation." << endl;
+        return;
+    }
+    cout << endl << "Choose the suspect to accuse:" << endl;
+    for (int index = 1; index < characterCount; ++index)
+        cout << "[" << index << "] " << characters[index]->getName() << " ("
+        << characters[index]->getRole() << ")" << endl;
+    int choice;
+    cin >> choice;
+    if (choice < 1 || choice >= characterCount)
+    {
+        cout << "Invalid suspect choice." << endl;
+        detective->reduceCredibility(wrongTurnPenalty);
+        detective->useTurn();
+        return;
+    }
+    detective->useTurn();
+    if (choice == culpritIndex)
+    {
+        cout << characters[choice]->getName() << " is the culprit!" << endl;
+        finishGame(true);
+    }
+    else
+    {
+        cout << "That accusation is incorrect." << endl;
+        finishGame(false);
+    }
+}
+void GameEngine::finishGame(bool playerWon)
+{
+    state = playerWon ? Won : Lost;
+    int turnsLeft = maximumTurns - detective->getTurns();
+    if (turnsLeft < 0) turnsLeft = 0;
+    string result = playerWon ? "WIN" : "LOSE";
+    cout << endl << "===========================================" << endl
+        << detective->getName() << " " << result << "!" << endl
+        << "Final credibility: " << detective->getCredibility()
+        << " | Turns used: " << detective->getTurns() << endl << ""
+        << "Culprit: " << characters[culpritIndex]->getName() << endl << ""
+        << "===========================================" << endl;
+    scoreBoard->appendResult(detective->getName(), result, detective->getCredibility(),
+        turnsLeft, characters[culpritIndex]->getRole());
+}
+
 
 
 
