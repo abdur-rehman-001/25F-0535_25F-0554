@@ -283,4 +283,20 @@ public:
     friend ostream& operator<<(ostream& output, const Scrabble& scrabble);
     friend istream& operator>>(istream& input, Scrabble& scrabble);
 };
+// TileRack game mein milne wale tiles rakhta hai
+class TileRack
+{
+private:
+    DynamicArray<Tile> tiles;
+    int capacity;
+    int count;
+public:
+    TileRack(int rackCapacity = 15);
+    TileRack(const TileRack& other);
+    TileRack& operator=(const TileRack& other);
+    ~TileRack();
+    void addTile(const Tile& tile);
+    void removeAll();
+    void display() const;
+    int getCount() const;
 
