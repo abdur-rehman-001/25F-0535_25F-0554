@@ -347,6 +347,21 @@ private:
     void startNewGame();
     void visitLocation();
     void interviewPerson();
+    void formWord();
+    void accuseSuspect();
+    void finishGame(bool playerWon);
+    void showAbout() const;
+    void showRules() const;
+    void showScoreBoard();
+    void showMainMenu() const;
+    void showGameMenu() const;
+    int readChoice(int minimum, int maximum) const;
 
+public:
+    ~GameEngine();
+    static GameEngine& getInstance();
+    void run();
+};
+#endif
 
 
