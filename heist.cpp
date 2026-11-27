@@ -817,6 +817,70 @@ void GameEngine::startNewGame()
     state = Playing;
     cout << endl << "A culprit has been secretly chosen. The game begins!" << endl;
 }
+void GameEngine::visitLocation()
+{
+    cottage->displayLocations();
+    int choice = readChoice(1, cottage->getLocationCount());
+    int index = choice - 1;
+    if (cottage->hasBeenSearched(index))
+    {
+        char again;
+        cout << "This location has already been searched. Show its clue again? (Y/N): ";
+        cin >> again;
+        if (toupper(again) != 'Y')
+        {
+            return;
+        }
+        cout << "The clue is " << cottage->getLocation(index).letterClueLoc
+            << " at position " << cottage->getLocation(index).boardPosLoc + 1 << "." << endl;
+        return;
+    }
+    Clue clue = cottage->searchLocation(index);
+    scrabble->placeClue(clue);
+    locationRack->addTile(Tile(clue.clueLetter, true));
+    detective->useTurn();
+    cout << "Letter " << clue.clueLetter << " collected at position " << clue.cluePosition + 1 << " of Word 1 and placed." << endl;
+}
+void GameEngine::interviewPerson()
+{
+    cout << endl << "====== Character Menu ======" << endl;
+    for (int index = 0; index < characterCount; ++index)
+    {
+        cout << "[" << index + 1 << "] " << characters[index]->getName() << " ("
+            << characters[index]->getRole() << ") - "
+            << (characters[index]->getInterviewed() ? "Interviewed" : "NOT Interviewed") << endl;
+    }
+    cout << "============================" << endl;
+    int choice = readChoice(1, characterCount);
+    Character* selected = characters[choice - 1];
+    if (!selected->canBeInterviewed(detective->getCredibility()))
+    {
+        cout << "HEIST ERROR: Credibility is too low to interview this person." << endl;
+        detective->reduceCredibility(wrongTurnPenalty);
+        detective->useTurn();
+        return;
+    }
+    if (selected->getInterviewed())
+    {
+        char again;
+        cout << "This person has already been interviewed. Show the clue again? (Y/N): ";
+        cin >> again;
+        if (toupper(again) != 'Y')
+        {
+            return;
+        }
+        Clue previous = selected->getClue();
+        cout << "The clue is " << previous.clueLetter << " at position "
+            << previous.cluePosition + 1 << "." << endl;
+        return;
+    }
+    Clue clue = selected->getClue();
+    selected->setInterviewed(true);
+    scrabble->placeClue(clue);
+    characterRack->addTile(Tile(clue.clueLetter, true));
+    detective->useTurn();
+    cout << "Letter " << clue.clueLetter << " collected at position "<< clue.cluePosition + 1 << " of Word 2 and placed." << endl;
+}
 
 
 
