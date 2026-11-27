@@ -529,4 +529,11 @@ int TileRack::getCount() const
 {
     return count;
 }
+TileRack TileRack::operator+(const TileRack& other) const
+{
+    TileRack merged(capacity + other.capacity);
+    for (int index = 0; index < count; ++index) merged.addTile(tiles[index]);
+    for (int index = 0; index < other.count; ++index) merged.addTile(other.tiles[index]);
+    return merged;
+}
 
