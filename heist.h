@@ -317,5 +317,16 @@ public:
 class GameEngine
 {
 private:
+    static GameEngine* instance;
+    GameState state;
+    Detective* detective;
+    Cottage* cottage;
+    Scrabble* scrabble;
+    TileRack* locationRack;
+    TileRack* characterRack;
+    Character** characters;
+    int characterCount;
+    int culpritIndex;
+    ScoreBoard* scoreBoard;
 
 
