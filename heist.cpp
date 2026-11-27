@@ -574,3 +574,40 @@ void ScoreBoard::display() const
     cout << "==========================================" << endl;
 }
 
+GameEngine::GameEngine()
+    : state(Menu), detective(0), cottage(0), scrabble(0), locationRack(0),
+    characterRack(0), characters(0), characterCount(8), culpritIndex(-1), scoreBoard(0),
+    targetWord1(""), targetWord2(""), word1Solved(false), word2Solved(false),
+    maximumTurns(25), startingCredibility(100), wrongTurnPenalty(5), wrongWordPenalty(10),
+    selectedProfileRole("")
+{
+    detective = new Detective();
+    cottage = new Cottage();
+    scrabble = new Scrabble();
+    locationRack = new TileRack(7);
+    characterRack = new TileRack(8);
+    characters = new Character * [characterCount];
+    for (int index = 0; index < characterCount; ++index)
+    {
+        characters[index] = 0;
+    }
+    buildCharacters();
+    scoreBoard = new ScoreBoard();
+}
+GameEngine::~GameEngine()
+{
+    for (int index = 0; index < characterCount; ++index)
+    {
+        delete characters[index];
+    }
+    delete[] characters;
+    delete scoreBoard;
+    delete characterRack;
+    delete locationRack;
+    delete scrabble;
+    delete cottage;
+    delete detective;
+    instance = 0;
+}
+
+
