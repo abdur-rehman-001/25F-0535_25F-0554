@@ -313,4 +313,9 @@ public:
     void display() const;
 };
 
+// GameEngine game ko control karta aur main objects ko manage karta hy
+class GameEngine
+{
+private:
+
 
