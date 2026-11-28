@@ -14,12 +14,12 @@ int main()
     }
     catch (const GameException& error)
     {
-        cerr << error.what() << endl;
+        cout << error.what() << endl;
         return 1;
     }
     catch (const exception& error)
     {
-        cerr << "  " << error.what() << endl;
+        cout << "  " << error.what() << endl;
         return 1;
     }
 }
