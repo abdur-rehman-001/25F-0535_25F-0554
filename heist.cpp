@@ -155,7 +155,7 @@ istream& operator>>(istream& input, Location& location)
     return input;
 }
 
-GameException::GameException(const string& detail): message("HEIST ERROR: " + detail){}
+GameException::GameException(const string& detail): message("  " + detail){}
 const char* GameException::what() const noexcept
 {
     return message.c_str();
@@ -855,7 +855,7 @@ void GameEngine::interviewPerson()
     Character* selected = characters[choice - 1];
     if (!selected->canBeInterviewed(detective->getCredibility()))
     {
-        cout << "HEIST ERROR: Credibility is too low to interview this person." << endl;
+        cout << "Credibility is too low to interview this person." << endl;
         detective->reduceCredibility(wrongTurnPenalty);
         detective->useTurn();
         return;
@@ -1011,7 +1011,7 @@ int GameEngine::readChoice(int minimum, int maximum) const
         {
             return choice;
         }
-        cout << "HEIST ERROR: Enter a number from " << minimum << " to " << maximum << "." << endl;
+        cout << "Enter a number from " << minimum << " to " << maximum << "." << endl;
         cin.clear();
         cin.ignore(10000, '\n');
     }
