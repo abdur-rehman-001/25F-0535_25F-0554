@@ -19,7 +19,7 @@ int main()
     }
     catch (const exception& error)
     {
-        cerr << "HEIST ERROR: " << error.what() << endl;
+        cerr << "  " << error.what() << endl;
         return 1;
     }
 }
